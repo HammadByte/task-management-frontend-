@@ -1,0 +1,10 @@
+import api from '../api/axios'
+export const getTasks = ()=> api.get('/task').then(r=>r.data)
+export const getTaskById = id=> api.get(`/task/${id}`).then(r=>r.data)
+export const createTask = d=> api.post('/task/create', d).then(r=>r.data)
+export const updateTask = (id,d)=> api.put(`/task/update/${id}`, d).then(r=>r.data)
+export const deleteTask = id=> api.delete(`/task/delete-restore/${id}`).then(r=>r.data)
+export const getStats = ()=> api.get('/task/dashboard').then(r=>r.data)
+export const updateTaskStage = (id,d)=> api.put(`/task/change-stage/${id}`, d).then(r=>r.data)
+export const updateSubTaskStage = (taskId, subId, d)=> api.put(`/task/change-status/${taskId}/${subId}`, d).then(r=>r.data)
+export const createSubTask = (id,d)=> api.put(`/task/create-subtask/${id}`, d).then(r=>r.data)
