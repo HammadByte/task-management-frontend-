@@ -22,8 +22,8 @@ const TeamManagement = () => {
         axios.get('http://localhost:5000/api/user/get-team')
       ]);
 
-      console.log('Status API Response:', statusResponse.data);
-      console.log('Team API Response:', teamResponse.data);
+      // console.log('Status API Response:', statusResponse.data);
+      // console.log('Team API Response:', teamResponse.data);
 
       // Handle different response structures
       const statusData = statusResponse.data.data || statusResponse.data;

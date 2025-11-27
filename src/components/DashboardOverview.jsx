@@ -14,23 +14,56 @@ const DashboardOverview = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [statusRes, taskRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/user/get-status'),
-        axios.get('http://localhost:5000/api/task/dashboard')
+
+      const [statusRes, taskRes, teamRes] = await Promise.all([
+        axios.get("http://localhost:5000/api/user/get-status"),
+        axios.get("http://localhost:5000/api/task/dashboard"),
+        axios.get('http://localhost:5000/api/user/get-team')
       ]);
 
+
+      // console.log('Team API Response:', teamResponse.data);
+
+      const teamLength = teamRes.data?.length || 0;
+
+      // TASK API FIX
+      const totalTasks = taskRes.data.total || 0;
+      const activeTasks = taskRes.data.active || 0;
+      const trashedTasks = taskRes.data.trashed || 0;
+
+      // USER API TEMPORARY FIX
+      const totalUsers = statusRes.data[0]?.total || 0;
+      const activeUsers = statusRes.data[0]?.active || 0;
+
+
+
+
+
       setStats({
-        userStatus: statusRes.data,
-        taskStats: taskRes.data
+        userStatus: {
+          totalUsers,
+          activeUsers,
+          totalTeams: teamLength,  // <-- ADD HERE
+        activeTeams: teamLength  // (if all are active)
+        },
+        taskStats: {
+          totalTasks,
+          inProgress: activeTasks,
+          pendingTasks: totalTasks - activeTasks,
+          completedTasks: trashedTasks
+        }
       });
+
       setError(null);
     } catch (err) {
-      setError('Failed to fetch dashboard data');
-      console.error('Dashboard error:', err);
+      setError("Failed to fetch dashboard data");
+      console.error("Dashboard error:", err);
     } finally {
       setLoading(false);
     }
   };
+
+
 
   if (loading) {
     return (
@@ -47,7 +80,7 @@ const DashboardOverview = () => {
           <div className="text-red-600 mr-3">⚠️</div>
           <div>
             <p className="text-red-800 font-medium">{error}</p>
-            <button 
+            <button
               onClick={fetchDashboardData}
               className="text-red-600 hover:text-red-800 text-sm mt-1"
             >
@@ -65,25 +98,37 @@ const DashboardOverview = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Users"
-          value={stats?.userStatus?.totalUsers || 0}
+          value={stats.userStatus.totalTeams}
           icon="👥"
           color="blue"
         />
         <StatCard
           title="Active Users"
-          value={stats?.userStatus?.activeUsers || 0}
+          value={stats.userStatus.activeTeams}
           icon="✅"
           color="green"
         />
         <StatCard
+          title="Total Tasks"
+          value={stats.taskStats.totalTasks}
+          icon="🎉"
+          color="green"
+        />
+        <StatCard
+          title="In Progress Tasks"
+          value={stats.taskStats.inProgress}
+          icon="📌"
+          color="green"
+        />
+        <StatCard
           title="Pending Tasks"
-          value={stats?.taskStats?.pendingTasks || 0}
+          value={stats?.taskStats?.pendingTasks || 2}
           icon="⏳"
           color="orange"
         />
         <StatCard
           title="Completed Tasks"
-          value={stats?.taskStats?.completedTasks || 0}
+          value={stats?.taskStats?.completedTasks || 1}
           icon="🎯"
           color="purple"
         />

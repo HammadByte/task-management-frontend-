@@ -578,14 +578,14 @@ const TaskManagement = () => {
       </div>
 
       {/* Debug Info */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      {/* <div className="bg-gray-50 rounded-lg p-4">
         <details className="text-sm">
           <summary className="cursor-pointer font-medium text-gray-700">Debug Information</summary>
           <pre className="mt-2 text-xs bg-white p-2 rounded border">
             {JSON.stringify(tasks, null, 2)}
           </pre>
         </details>
-      </div>
+      </div> */}
     </div>
   );
 };
