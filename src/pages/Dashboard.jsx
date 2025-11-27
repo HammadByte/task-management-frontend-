@@ -1,10 +1,10 @@
-// // src/components/Dashboard.jsx
+// // src/components/UserDashboard.jsx
 // import React, { useState, useEffect } from 'react';
 // import { useAuth } from '../context/AuthContext';
 // import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
 
-// const Dashboard = () => {
+// const UserDashboard = () => {
 //   const { user, logout } = useAuth();
 //   const navigate = useNavigate();
   
@@ -704,4 +704,4 @@
 //   );
 // };
 
-// export default Dashboard;
+// export default UserDashboard;
