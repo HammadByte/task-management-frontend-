@@ -56,7 +56,7 @@ const UserSidebar = ({ activeTab, setActiveTab, onClose, notificationCount }) =>
       {/* Footer */}
       <div className="p-4 border-t border-gray-200">
         <div className="text-center text-xs text-gray-500">
-          <p>User Dashboard v1.0</p>
+          <p>User Dashboard</p>
         </div>
       </div>
     </div>
