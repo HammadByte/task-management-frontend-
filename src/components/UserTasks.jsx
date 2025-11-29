@@ -1,13 +1,36 @@
 // src/components/UserTasks.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const UserTasks = ({ tasks, onRefresh }) => {
+const UserTasks = () => {
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const myTasks = tasks || [];
+  const token = localStorage.getItem("authToken");
+
+  // Fetch only user tasks
+  const fetchMyTasks = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get("http://localhost:5000/api/task/", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTasks(res.data.tasks || res.data);
+    } catch (err) {
+      setError("Failed to load tasks: " + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMyTasks();
+  }, []);
+
+// ⭐ Filter ONLY assigned tasks (same logic as UserOverview Page)
+  const assignedTasks = tasks.filter(task => task.assignee || task.assignees?.length > 0);
 
   const handleChangeStage = async (taskId, newStage) => {
     setLoading(true);
@@ -15,9 +38,14 @@ const UserTasks = ({ tasks, onRefresh }) => {
     setSuccess('');
 
     try {
-      await axios.put(`http://localhost:5000/api/task/change-stage/${taskId}`, { stage: newStage });
+      await axios.put(
+        `http://localhost:5000/api/task/change-stage/${taskId}`,
+        { stage: newStage },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       setSuccess('Task stage updated successfully!');
-      onRefresh(); // Refresh data
+      fetchMyTasks(); // Refresh after update
     } catch (err) {
       setError('Failed to update task stage: ' + (err.response?.data?.message || err.message));
     } finally {
@@ -55,7 +83,7 @@ const UserTasks = ({ tasks, onRefresh }) => {
           <p className="text-sm text-gray-600 mt-1">Tasks assigned to you</p>
         </div>
         <div className="text-sm text-gray-500">
-          {myTasks.length} task(s) found
+          {assignedTasks.length} task(s) found
         </div>
       </div>
 
@@ -84,46 +112,44 @@ const UserTasks = ({ tasks, onRefresh }) => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Task
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Priority
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Stage
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Due Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
             </thead>
+
             <tbody className="bg-white divide-y divide-gray-200">
-              {myTasks.map((task) => (
-                <tr key={task._id} className="hover:bg-gray-50 transition duration-150">
+              {assignedTasks.map((task) => (
+                <tr key={task._id} className="hover:bg-gray-50 transition">
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">{task.title}</div>
                     <div className="text-sm text-gray-500 mt-1">{task.description}</div>
-                    {task.subtasks && task.subtasks.length > 0 && (
-                      <div className="text-xs text-gray-400 mt-1">
-                        {task.subtasks.length} subtask(s)
-                      </div>
-                    )}
                   </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority)}`}>
-                      {task.priority || 'medium'}
+                      {task.priority}
                     </span>
                   </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <select
                       value={task.stage}
                       onChange={(e) => handleChangeStage(task._id, e.target.value)}
                       disabled={loading}
-                      className={`text-xs font-medium rounded-full border-0 focus:ring-2 focus:ring-green-500 ${getStageColor(task.stage)}`}
+                      className={`text-xs font-medium rounded-full border-0 focus:ring-2 ${getStageColor(task.stage)}`}
                     >
                       <option value="backlog">Backlog</option>
                       <option value="todo">To Do</option>
@@ -132,13 +158,13 @@ const UserTasks = ({ tasks, onRefresh }) => {
                       <option value="completed">Completed</option>
                     </select>
                   </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
                   </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-green-600 hover:text-green-900 text-xs">
-                      View Details
-                    </button>
+                    <button className="text-green-600 hover:text-green-900 text-xs">View Details</button>
                   </td>
                 </tr>
               ))}
@@ -146,11 +172,11 @@ const UserTasks = ({ tasks, onRefresh }) => {
           </table>
         </div>
 
-        {myTasks.length === 0 && (
+        {assignedTasks.length === 0 && !loading && (
           <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">✅</div>
+            <div className="text-gray-400 text-6xl mb-4">😎</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks assigned</h3>
-            <p className="text-gray-500">You don't have any tasks assigned to you yet.</p>
+            <p className="text-gray-500">You don't have any tasks yet.</p>
           </div>
         )}
       </div>
