@@ -39,7 +39,7 @@ const TaskManagement = () => {
     try {
       setLoading(true);
       const response = await axios.get('http://localhost:5000/api/task/');
-      
+
       // Handle the direct array response
       let tasksData = [];
       if (Array.isArray(response.data)) {
@@ -49,7 +49,7 @@ const TaskManagement = () => {
       } else if (response.data.data) {
         tasksData = response.data.data;
       }
-      
+
       console.log('Fetched tasks:', tasksData); // Debug log
       setTasks(tasksData);
       setError(null);
@@ -65,7 +65,7 @@ const TaskManagement = () => {
     try {
       const response = await axios.get('http://localhost:5000/api/user/get-team');
       let usersData = [];
-      
+
       if (response.data.users) {
         usersData = response.data.users;
       } else if (Array.isArray(response.data)) {
@@ -73,7 +73,7 @@ const TaskManagement = () => {
       } else if (response.data.data) {
         usersData = response.data.data;
       }
-      
+
       setUsers(usersData);
     } catch (err) {
       console.error('Error fetching users:', err);
@@ -89,21 +89,21 @@ const TaskManagement = () => {
     try {
       const response = await axios.post('http://localhost:5000/api/task/create', taskForm);
       console.log('Create task response:', response.data); // Debug log
-      
+
       setSuccessMessage('Task created successfully!');
-      setTaskForm({ 
-        title: '', 
-        description: '', 
-        priority: 'medium', 
-        stage: 'todo', 
-        dueDate: '', 
-        assignee: '' 
+      setTaskForm({
+        title: '',
+        description: '',
+        priority: 'medium',
+        stage: 'todo',
+        dueDate: '',
+        assignee: ''
       });
       setShowCreateForm(false);
-      
+
       // Refresh the task list
       await fetchTasks();
-      
+
     } catch (err) {
       setError('Failed to create task: ' + (err.response?.data?.message || err.message));
       console.error('Error creating task:', err);
@@ -121,20 +121,26 @@ const TaskManagement = () => {
     setSuccessMessage('');
 
     try {
-      const response = await axios.put(`http://localhost:5000/api/task/update/${selectedTask._id}`, taskForm);
-      console.log('Update task response:', response.data); // Debug log
-      
+      const response = await axios.put(
+        `http://localhost:5000/api/task/update/${selectedTask._id}`,
+        {
+          title: taskForm.title,
+          description: taskForm.description,
+          priority: taskForm.priority
+        }
+      );
+
       setSuccessMessage('Task updated successfully!');
       setShowEditForm(false);
       setSelectedTask(null);
       await fetchTasks();
     } catch (err) {
       setError('Failed to update task: ' + (err.response?.data?.message || err.message));
-      console.error('Error updating task:', err);
     } finally {
       setActionLoading(null);
     }
   };
+
 
   const handleDeleteTask = async (taskId) => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
@@ -146,7 +152,7 @@ const TaskManagement = () => {
     try {
       const response = await axios.delete(`http://localhost:5000/api/task/delete-restore/${taskId}`);
       console.log('Delete task response:', response.data); // Debug log
-      
+
       setSuccessMessage('Task deleted successfully!');
       await fetchTasks();
     } catch (err) {
@@ -165,7 +171,7 @@ const TaskManagement = () => {
     try {
       const response = await axios.put(`http://localhost:5000/api/task/change-stage/${taskId}`, { stage: newStage });
       console.log('Change stage response:', response.data); // Debug log
-      
+
       setSuccessMessage('Task stage updated successfully!');
       await fetchTasks();
     } catch (err) {
@@ -185,21 +191,27 @@ const TaskManagement = () => {
     setSuccessMessage('');
 
     try {
-      const response = await axios.put(`http://localhost:5000/api/task/create-subtask/${selectedTaskForSubtask._id}`, subtaskForm);
-      console.log('Create subtask response:', response.data); // Debug log
-      
+      const response = await axios.put(
+        `http://localhost:5000/api/task/create-subtask/${selectedTaskForSubtask._id}`,
+        {
+          title: subtaskForm.title,
+          status: "pending"
+        }
+      );
+
       setSuccessMessage('Subtask created successfully!');
       setSubtaskForm({ title: '', description: '' });
       setShowSubtaskForm(false);
       setSelectedTaskForSubtask(null);
+
       await fetchTasks();
     } catch (err) {
       setError('Failed to create subtask: ' + (err.response?.data?.message || err.message));
-      console.error('Error creating subtask:', err);
     } finally {
       setActionLoading(null);
     }
   };
+
 
   const handleDuplicateTask = async (taskId) => {
     setActionLoading(`duplicate-${taskId}`);
@@ -209,7 +221,7 @@ const TaskManagement = () => {
     try {
       const response = await axios.post(`http://localhost:5000/api/task/duplicate/${taskId}`);
       console.log('Duplicate task response:', response.data); // Debug log
-      
+
       setSuccessMessage('Task duplicated successfully!');
       await fetchTasks();
     } catch (err) {
@@ -228,7 +240,7 @@ const TaskManagement = () => {
     try {
       const response = await axios.put(`http://localhost:5000/api/task/${taskId}`, { trashed: true });
       console.log('Trash task response:', response.data); // Debug log
-      
+
       setSuccessMessage('Task moved to trash successfully!');
       await fetchTasks();
     } catch (err) {
@@ -241,19 +253,20 @@ const TaskManagement = () => {
 
   const openEditForm = (task) => {
     setSelectedTask(task);
+
     setTaskForm({
       title: task.title,
       description: task.description,
-      priority: task.priority || 'medium',
-      stage: task.stage || 'todo',
-      dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
-      assignee: task.assignee?._id || task.assignees?.[0]?._id || ''
+      priority: task.priority || 'medium'
     });
+
     setShowEditForm(true);
   };
 
+
   const openSubtaskForm = (task) => {
     setSelectedTaskForSubtask(task);
+    setSubtaskForm({ title: '', description: '' }); // reset form when opening
     setShowSubtaskForm(true);
   };
 
@@ -459,7 +472,7 @@ const TaskManagement = () => {
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">All Tasks ({tasks.length})</h3>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -576,6 +589,149 @@ const TaskManagement = () => {
           </div>
         )}
       </div>
+
+{/* Edit Task Modal */}
+{showEditForm && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-transparent bg-opacity-40"
+    onClick={() => { setShowEditForm(false); setSelectedTask(null); }}
+  >
+    <div
+      className="bg-white rounded-xl shadow-lg w-full max-w-xl p-6"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex justify-between items-center mb-4">
+        <h4 className="text-lg font-semibold">Edit Task</h4>
+        <button
+          onClick={() => { setShowEditForm(false); setSelectedTask(null); }}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          ✕
+        </button>
+      </div>
+
+      <form onSubmit={handleUpdateTask} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Title *</label>
+          <input
+            type="text"
+            required
+            value={taskForm.title}
+            onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+            className="w-full px-3 py-2 border rounded-lg"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            rows="3"
+            value={taskForm.description}
+            onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+            className="w-full px-3 py-2 border rounded-lg"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Priority</label>
+          <select
+            value={taskForm.priority}
+            onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
+            className="w-full px-3 py-2 border rounded-lg"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-2">
+          <button
+            type="button"
+            onClick={() => { setShowEditForm(false); setSelectedTask(null); }}
+            className="px-4 py-2 bg-gray-200 rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={actionLoading === 'update'}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+          >
+            {actionLoading === 'update' ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
+
+{/* Add Subtask Modal */}
+{showSubtaskForm && selectedTaskForSubtask && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-transparent bg-opacity-40"
+    onClick={() => { setShowSubtaskForm(false); setSelectedTaskForSubtask(null); }}
+  >
+    <div
+      className="bg-white rounded-xl shadow-lg w-full max-w-md p-6"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex justify-between items-center mb-4">
+        <h4 className="text-lg font-semibold">Add Subtask to: {selectedTaskForSubtask.title}</h4>
+        <button
+          onClick={() => { setShowSubtaskForm(false); setSelectedTaskForSubtask(null); }}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          ✕
+        </button>
+      </div>
+
+      <form onSubmit={handleCreateSubtask} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Subtask Title *</label>
+          <input
+            type="text"
+            required
+            value={subtaskForm.title}
+            onChange={(e) => setSubtaskForm({ ...subtaskForm, title: e.target.value })}
+            className="w-full px-3 py-2 border rounded-lg"
+            placeholder="Header UI"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            rows="3"
+            value={subtaskForm.description}
+            onChange={(e) => setSubtaskForm({ ...subtaskForm, description: e.target.value })}
+            className="w-full px-3 py-2 border rounded-lg"
+            placeholder="Optional details..."
+          />
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-2">
+          <button
+            type="button"
+            onClick={() => { setShowSubtaskForm(false); setSelectedTaskForSubtask(null); }}
+            className="px-4 py-2 bg-gray-200 rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={actionLoading === 'create-subtask'}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50"
+          >
+            {actionLoading === 'create-subtask' ? 'Adding...' : 'Add Subtask'}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
 
       {/* Debug Info */}
       {/* <div className="bg-gray-50 rounded-lg p-4">

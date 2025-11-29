@@ -8,6 +8,9 @@ const UserTasks = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
   const token = localStorage.getItem("authToken");
 
   // Fetch only user tasks
@@ -29,7 +32,7 @@ const UserTasks = () => {
     fetchMyTasks();
   }, []);
 
-// ⭐ Filter ONLY assigned tasks (same logic as UserOverview Page)
+  // ⭐ Filter ONLY assigned tasks (same logic as UserOverview Page)
   const assignedTasks = tasks.filter(task => task.assignee || task.assignees?.length > 0);
 
   const handleChangeStage = async (taskId, newStage) => {
@@ -164,7 +167,12 @@ const UserTasks = () => {
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-green-600 hover:text-green-900 text-xs">View Details</button>
+                    <button className="text-green-600 hover:text-green-900 text-xs"
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setShowDetailModal(true);
+                      }}
+                    >View Details</button>
                   </td>
                 </tr>
               ))}
@@ -180,7 +188,43 @@ const UserTasks = () => {
           </div>
         )}
       </div>
+      {showDetailModal && selectedTask && (
+        <div className="fixed inset-0 bg-transparent bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-xl w-96 shadow-lg relative">
+
+            {/* Close Button */}
+            <button
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowDetailModal(false)}
+            >
+              ✕
+            </button>
+
+            <h2 className="text-lg font-semibold mb-3">{selectedTask.title}</h2>
+            <p className="text-sm text-gray-600 mb-4">{selectedTask.description}</p>
+
+            <h3 className="font-semibold text-gray-700 mb-2">Subtasks</h3>
+
+            {/* Subtask List */}
+            {selectedTask.subtasks && selectedTask.subtasks.length > 0 ? (
+              <ul className="space-y-2">
+                {selectedTask.subtasks.map((sub, index) => (
+                  <li key={index} className="bg-gray-100 rounded-lg p-2 text-sm">
+                    <div className="font-medium">{sub.title}</div>
+                    <div className="text-xs text-gray-500">{sub.status}</div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 text-sm">No subtasks available.</p>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
+
+
   );
 };
 
